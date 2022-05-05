@@ -81,15 +81,9 @@ jobs:
             let proStatusMessage = "success";
             let proFailed = false;
 
-            let branch = await helper.findMatchingBranch("liquibase", "liquibase-pro");
-            //count as not a stand-alone PR for branch builds on master/main, even though there are no PRs
-            if (helper.getCurrentBranch() == 'main' || helper.getCurrentBranch() == 'main' && branch.pullRequestId) {
-              core.setOutput("standAlonePR", helper.getCurrentBranch() !== branch.name);
-            } else {
-              core.setOutput("standAlonePR", true);
-            }
+            core.setOutput("standAlonePR", true);
 
-            statusMessage = "deepy/liquibase-private:"+branch.name+"@" + branch.sha.substring(0, 7) + " " + proStatusMessage;
+            statusMessage = "deepy/liquibase-private:"+helper.getCurrentBranch()+"@" + branch.sha.substring(0, 7) + " " + proStatusMessage;
 
             github.rest.repos.createCommitStatus({
               "owner": "deepy",
