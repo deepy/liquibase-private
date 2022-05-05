@@ -6,5 +6,8 @@
     <buildScan>
         <publish>ALWAYS</publish>
         <backgroundBuildScanUpload>#{env['CI'] == null}</backgroundBuildScanUpload>
+        <capture>
+            <goalInputFiles>true</goalInputFiles>
+        </capture>
     </buildScan>
 </gradleEnterprise>
