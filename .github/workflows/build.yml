@@ -201,7 +201,7 @@ jobs:
             */target/*-0-SNAPSHOT.jar
 
   sonar:
-    name: Sonar Scan
+    name: Sonar Scan (fake)
     runs-on: ubuntu-latest
     needs: build
     steps:
@@ -215,17 +215,8 @@ jobs:
           java-version: 11
           distribution: 'adopt'
           cache: 'maven'
-      - name: Cache SonarCloud packages
-        uses: actions/cache@v3.0.1
-        with:
-          path: ~/.sonar/cache
-          key: ${{ runner.os }}-sonar
-          restore-keys: ${{ runner.os }}-sonar
       - name: Build and analyze
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: mvn clean verify sonar:sonar -P sonar -Dsonar.login=$SONAR_TOKEN -Dsonar.pullrequest.key=${{ github.event.pull_request.number }} -Dsonar.pullrequest.branch=${{ github.event.pull_request.head.ref }} -Dsonar.pullrequest.base=${{ github.event.pull_request.base.ref }}
+        run: mvn clean verify -Dsonar.pullrequest.key=${{ github.event.pull_request.number }} -Dsonar.pullrequest.branch=${{ github.event.pull_request.head.ref }} -Dsonar.pullrequest.base=${{ github.event.pull_request.base.ref }}
 
   integration-test:
     name: Integration Test
@@ -269,13 +260,6 @@ jobs:
           key: built-code-${{ github.run_number }}-${{ github.run_attempt }}
           path: ./**/target
 
-      - name: Login to Artifactory
-        uses: docker/login-action@v1
-        with:
-          registry: docker-dev.artifactory.datical.net
-          username: ${{ secrets.ARTIFACTORY_USER }}
-          password: ${{ secrets.ARTIFACTORY_TOKEN }}
-
       - name: Run Tests
         run: mvn -B jar:jar jar:test-jar surefire:test -DtrimStackTrace=false -Dliquibase.sdk.testSystem.test=${{ matrix.testSystem }} -Dliquibase.sdk.testSystem.acceptLicenses=${{ matrix.testSystem }} -Dtest=*IntegrationTest,*ExecutorTest -DfailIfNoTests=false -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false -Dmaven.wagon.httpconnectionManager.ttlSeconds=120
 
@@ -314,39 +298,14 @@ jobs:
         with:
           java-version: '8'
           distribution: 'temurin'
-          gpg-private-key: ${{ secrets.GPG_SECRET }}
-          gpg-passphrase: GPG_PASSPHRASE
           cache: 'maven'
-        env:
-          GPG_PASSWORD: ${{ secrets.GPG_PASSPHRASE }}
-
-      - name: Download liquibase-pro
-        uses: liquibase/action-download-artifact@v2-liquibase
-        with:
-          github_token: ${{ secrets.BOT_TOKEN }}
-          workflow: build.yml
-          workflow_conclusion: success
-          branch: "${{ needs.setup.outputs.proBranchName }}"
-          name: liquibase-pro-modules
-          path: download/liquibase-pro
-          repo: liquibase/liquibase-pro
 
       - name: Install Built Modules
         run: |
           (find . -name *-SNAPSHOT.jar -exec mvn -B org.apache.maven.plugins:maven-install-plugin:3.0.0-M1:install-file -Dfile={} \;)
           (find . -name *-SNAPSHOT-sources.jar -exec mvn -B org.apache.maven.plugins:maven-install-plugin:3.0.0-M1:install-file -Dclassifier=sources -Dfile={} \;)
-          mvn -B org.apache.maven.plugins:maven-install-plugin:3.0.0-M1:install-file -Dfile=download/liquibase-pro/liquibase-pro-0-SNAPSHOT.jar
 
       - name: Build & Sign Artifacts
-        env:
-          INSTALL4J_LICENSE: ${{ secrets.INSTALL4J_LICENSE }}
-          INSTALL4J_APPLE_KEY: ${{ secrets.INSTALL4J_APPLE_KEY }}
-          INSTALL4J_APPLE_KEY_PASSWORD: ${{ secrets.INSTALL4J_APPLE_KEY_PASSWORD }}
-          INSTALL4J_APPLE_ID: ${{ secrets.INSTALL4J_APPLE_ID }}
-          INSTALL4J_APPLE_ID_PASSWORD: ${{ secrets.INSTALL4J_APPLE_ID_PASSWORD }}
-          INSTALL4J_WINDOWS_KEY: ${{ secrets.INSTALL4J_WINDOWS_KEY }}
-          INSTALL4J_WINDOWS_KEY_PASSWORD: ${{ secrets.INSTALL4J_WINDOWS_KEY_PASSWORD }}
-          GPG_PASSWORD: ${{ secrets.GPG_PASSPHRASE }}
         run: |
           ## save install4j code signing keys
           mkdir -p liquibase-dist/target/keys
@@ -355,7 +314,7 @@ jobs:
 
           echo "Saving windows key"
           echo "$INSTALL4J_WINDOWS_KEY" | base64 -d > liquibase-dist/target/keys/datical_windows.pfx
-          mvn -B -pl liquibase-dist -P liquibase-pro source:jar package
+          mvn -B -pl liquibase-dist source:jar package
 
           ## extract tar content for other artifacts
           mkdir -p liquibase-dist/target/liquibase-0-SNAPSHOT
@@ -414,156 +373,3 @@ jobs:
         with:
           name: liquibase-artifacts-${{ needs.setup.outputs.thisBranchFileName }}
           path: artifacts-named/*
-
-
-  finish:
-    name: Finish Build
-    runs-on: ubuntu-latest
-    needs: [ setup, build, integration-test, package, sonar ]
-    if: ${{ needs.setup.outputs.setupSuccessful }}
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          ref: ${{ github.event.pull_request.head.sha || github.event.after}}
-
-      - name: Coordinate Liquibase-Pro
-        uses: actions/github-script@v6
-        with:
-          github-token: ${{ secrets.BOT_TOKEN }}
-          script: |
-            const helper = require('./.github/util/workflow-helper.js')({github, context});
-            let currentBranchInfo = await helper.findMatchingBranch("liquibase", "liquibase-pro");
-
-            let thisStatus = "${{ needs.package.result }}" == "success" ? "success" : "failure";
-            let stablePro = ("${{ needs.setup.outputs.stablePro }}" == "true");
-            let standalonePR = "${{ needs.setup.outputs.standAlonePR }}" == "true";
-
-            console.log("Stand alone PR: "+standalonePR);
-
-            let runFunctionalTests = false;
-            let markFunctionalTestsStatus = "failure";
-            let markFunctionalTestsDescription = "Unexpected setup";
-
-            if (stablePro) {
-              console.log("Pro is stable");
-
-              runFunctionalTests = true;
-              markFunctionalTestsStatus = "pending";
-              markFunctionalTestsDescription = "Trigger internal functional tests";
-            } else {
-              console.log("Last pro was unstable");
-
-              runFunctionalTests = false;
-              markFunctionalTestsStatus = "failure";
-              markFunctionalTestsDescription = "Liquibase Pro is unstable";
-
-              let checks = await github.rest.repos.listCommitStatusesForRef({
-                "owner": "liquibase",
-                "repo": "liquibase-pro",
-                "ref": currentBranchInfo.sha
-              });
-
-              let failedCheckingUs = false;
-              if (standalonePR) {
-                for (let status of checks.data) {
-                  if (status.context == "Stable Liquibase Core") {
-                    console.log("Stable Liquibase Core is "+ status.state);
-                    failedCheckingUs = (status.state == "failure");
-                  }
-                }
-              }
-
-              if (failedCheckingUs) {
-                console.log("Rerun liquibase-pro that was waiting on us");
-
-                //octokit removed the retryWorkflow function
-                github.request("POST "+currentBranchInfo.runRerunUrl);
-
-                //await github.rest.actions.retryWorkflow({
-                //    "owner": "liquibase",
-                //    "repo": "liquibase-pro",
-                //    "run_id": currentBranchInfo.workflowId
-                //});
-              }
-            }
-
-            if (standalonePR) {
-              console.log("Do not mark base pro branch as included in this");
-            } else {
-              console.log("Mark 'Included in Liquibase Core' status as "+thisStatus);
-              github.rest.repos.createCommitStatus({
-                "owner": "liquibase",
-                "repo": "liquibase-pro",
-                "sha": currentBranchInfo.sha,
-                "state": thisStatus,
-                "context": "Stable Liquibase Core",
-                "target_url": currentBranchInfo.runHtmlUrl,
-                "description": "Latest Liquibase Core build"
-              });
-            }
-
-            if (runFunctionalTests) {
-              let testsBranch = await helper.findMatchingBranch("liquibase", "liquibase-pro-tests");
-
-              let notices = [];
-              if (context.payload.pull_request) {
-                console.log("Sending pull request information");
-                notices = ["Triggered by PR " + context.payload.pull_request.html_url];
-              }
-              console.log("Trigger functional tests");
-              let workflowDispatch = await github.rest.actions.createWorkflowDispatch({
-                "owner": "liquibase",
-                "repo": "liquibase-pro-tests",
-                "workflow_id": "test.yml",
-                "ref": testsBranch.name,
-                "inputs": {
-                  "liquibaseCommit": helper.getCurrentSha(),
-                  "runDescription": "Triggered by https://github.com/liquibase/liquibase/actions/runs/"+context.runId,
-                  "liquibaseBranch": helper.getCurrentBranch(),
-                  "runDetails": JSON.stringify({
-                    "liquibaseBranch": helper.getCurrentBranch(),
-                    "notices": notices
-                  })
-                }
-              });
-            
-              let testHarnessBranch = await helper.findMatchingBranch("liquibase", "liquibase-test-harness");
-              if (testHarnessBranch.name == "main" || testHarnessBranch.name == "master") {
-                testHarnessBranch.name = "develop";
-              }
-              
-              console.log("Trigger Test Harness tests");
-              let testHarnessWorkflowDispatch = await github.rest.actions.createWorkflowDispatch({
-                "owner": "liquibase",
-                "repo": "liquibase-test-harness",
-                "workflow_id": "main.yml",
-                "ref": testHarnessBranch.name,
-                "inputs": {
-                  "liquibaseCommit": helper.getCurrentSha(),
-                  "runDescription": "Triggered by https://github.com/liquibase/liquibase/actions/runs/"+context.runId,
-                  "liquibaseBranch": helper.getCurrentBranch(),
-                  "runDetails": JSON.stringify({
-                    "liquibaseBranch": helper.getCurrentBranch(),
-                    "notices": notices
-                  })
-                }
-              });
-            }
-
-            await github.rest.repos.createCommitStatus({
-              "owner": "liquibase",
-              "repo": "liquibase",
-              "sha": helper.getCurrentSha(),
-              "state": markFunctionalTestsStatus,
-              "context": "Run Functional Tests",
-              "description": markFunctionalTestsDescription
-            });
-
-            await github.rest.repos.createCommitStatus({
-              "owner": "liquibase",
-              "repo": "liquibase",
-              "sha": helper.getCurrentSha(),
-              "state": markFunctionalTestsStatus,
-              "context": "Run Test Harness",
-              "description": markFunctionalTestsDescription
-            });
