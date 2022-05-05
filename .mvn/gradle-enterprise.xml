@@ -14,6 +14,7 @@
         <local><enabled>false</enabled></local>
         <remote>
             <enabled>true</enabled>
+            <storeEnabled>true</storeEnabled>
             <server>
                 <id>ge-liquibase</id>
                 <url>https://ec2-3-239-164-203.compute-1.amazonaws.com/cache/</url>
