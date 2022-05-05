@@ -44,12 +44,3 @@ else
   hdiutil detach /Volumes/install4j
 
 fi
-
-INSTALL4J_ARGS="$INSTALL4J_ARGS --release=$version -D liquibaseVersion=$version -D install4j.logToStderr=true"
-
-  echo "WARNING: not signing installer because target/keys directory does not exist."
-  INSTALL4J_ARGS="$INSTALL4J_ARGS --disable-signing"
-
-"$install4jc" --license=$INSTALL4J_LICENSE
-"$install4jc" $INSTALL4J_ARGS src/main/install4j/liquibase.install4j
-

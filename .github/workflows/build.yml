@@ -287,9 +287,6 @@ jobs:
           ##create zip file from tar content
           (cd liquibase-dist/target/liquibase-0-SNAPSHOT && zip -r ../liquibase-0-SNAPSHOT.zip *)
 
-          ##create installers
-          (cd liquibase-dist && ${{ github.workspace }}/.github/util/package-install4j.sh 0-SNAPSHOT)
-
           find . -name original-*.jar -exec rm {} \;
 
           mkdir -p artifacts
@@ -308,8 +305,6 @@ jobs:
           cp liquibase-cdi/target/liquibase-cdi-0-SNAPSHOT-javadoc.jar artifacts
 
           cp target/liquibase-0-SNAPSHOT-javadoc.jar artifacts
-
-          .github/util/sign-artifacts.sh artifacts
 
           ##prepare branch-named convenience artifacts directories
           mkdir artifacts-named
