@@ -13,10 +13,10 @@ if [ -z ${1+x} ]; then
 fi
 version=$1
 
-if [ -z ${INSTALL4J_LICENSE+x} ]; then
-  echo "INSTALL4J_LICENSE must be set";
-  exit 1
-fi
+#if [ -z ${INSTALL4J_LICENSE+x} ]; then
+#  echo "INSTALL4J_LICENSE must be set";
+#  exit 1
+#fi
 
 
 mkdir -p ~/.install4j8
@@ -47,12 +47,8 @@ fi
 
 INSTALL4J_ARGS="$INSTALL4J_ARGS --release=$version -D liquibaseVersion=$version -D install4j.logToStderr=true"
 
-if [ ! -e target/keys ]; then
   echo "WARNING: not signing installer because target/keys directory does not exist."
   INSTALL4J_ARGS="$INSTALL4J_ARGS --disable-signing"
-else
-  INSTALL4J_ARGS="$INSTALL4J_ARGS --win-keystore-password=$INSTALL4J_WINDOWS_KEY_PASSWORD --mac-keystore-password=$INSTALL4J_APPLE_KEY_PASSWORD --apple-id=$INSTALL4J_APPLE_ID --apple-id-password=$INSTALL4J_APPLE_ID_PASSWORD"
-fi
 
 "$install4jc" --license=$INSTALL4J_LICENSE
 "$install4jc" $INSTALL4J_ARGS src/main/install4j/liquibase.install4j
