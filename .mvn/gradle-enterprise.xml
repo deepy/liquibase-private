@@ -1,0 +1,10 @@
+<gradleEnterprise>
+    <server>
+        <url>https://ec2-3-239-164-203.compute-1.amazonaws.com</url>
+        <allowUntrusted>true</allowUntrusted>
+    </server>
+    <buildScan>
+        <publish>ALWAYS</publish>
+        <backgroundBuildScanUpload>#{env['CI'] == null}</backgroundBuildScanUpload>
+    </buildScan>
+</gradleEnterprise>
