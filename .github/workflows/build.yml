@@ -85,7 +85,7 @@ jobs:
 
             let branch = await helper.findMatchingBranch("liquibase", "liquibase-pro");
             //count as not a stand-alone PR for branch builds on master/main, even though there are no PRs
-            if (helper.getCurrentBranch() == 'master' || helper.getCurrentBranch() == 'main' && branch.pullRequestId) {
+            if (helper.getCurrentBranch() == 'main' || helper.getCurrentBranch() == 'main' && branch.pullRequestId) {
               core.setOutput("standAlonePR", helper.getCurrentBranch() !== branch.name);
             } else {
               core.setOutput("standAlonePR", true);
@@ -116,8 +116,8 @@ jobs:
             console.log("Pro failed?" + proFailed + ": "+statusMessage);
 
             github.rest.repos.createCommitStatus({
-              "owner": "liquibase",
-              "repo": "liquibase",
+              "owner": "deepy",
+              "repo": "liquibase-private",
               "sha": helper.getCurrentSha(),
               "state": (proFailed ? "failure" : "success"),
               "target_url": branch.runHtmlUrl,

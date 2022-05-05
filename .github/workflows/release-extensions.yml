@@ -44,7 +44,7 @@ jobs:
             console.log("Sending liquibase-release event to liquibase/${{ matrix.extension }}");
 
             await github.rest.repos.createDispatchEvent({
-               "owner": "liquibase",
+               "owner": "deepy",
                "repo": "${{ matrix.extension }}",
                "event_type": "liquibase-release",
                "client_payload": {
