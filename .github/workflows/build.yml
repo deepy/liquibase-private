@@ -83,20 +83,6 @@ jobs:
 
             core.setOutput("standAlonePR", true);
 
-            let branch = helper.getCurrentBranch();
-
-            statusMessage = "deepy/liquibase-private:"+helper.getCurrentBranch()+"@" + branch.sha.substring(0, 7) + " " + proStatusMessage;
-
-            github.rest.repos.createCommitStatus({
-              "owner": "deepy",
-              "repo": "liquibase-private",
-              "sha": helper.getCurrentSha(),
-              "state": (proFailed ? "failure" : "success"),
-              "target_url": branch.runHtmlUrl,
-              "context": "Stable Liquibase Pro",
-              "description": statusMessage
-            });
-
       - name: Upload Event File
         uses: actions/upload-artifact@v3
         with:
