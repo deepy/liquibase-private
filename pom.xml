@@ -438,6 +438,28 @@
                     <artifactId>maven-install-plugin</artifactId>
                     <version>2.5.2</version>
                 </plugin>
+                <plugin>
+                    <groupId>com.gradle</groupId>
+                    <artifactId>gradle-enterprise-maven-extension</artifactId>
+                    <configuration>
+                        <gradleEnterprise>
+                            <normalization>
+                                <runtimeClassPath>
+                                    <metaInf>
+                                        <ignoredAttributes>
+                                            <ignore>Build-Time</ignore>
+                                            <ignore>Build-Number</ignore>
+                                            <ignore>Bnd-LastModified</ignore>
+                                        </ignoredAttributes>
+                                    </metaInf>
+                                    <ignoredFiles>
+                                        <ignoredFile>**/liquibase.build.properties</ignoredFile>
+                                    </ignoredFiles>
+                                </runtimeClassPath>
+                            </normalization>
+                        </gradleEnterprise>
+                    </configuration>
+                </plugin>
             </plugins>
         </pluginManagement>
     </build>
