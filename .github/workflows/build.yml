@@ -70,7 +70,7 @@ jobs:
         id: find-branches
         uses: actions/github-script@v6
         with:
-          github-token: ${{ secrets.BOT_TOKEN }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const helper = require('./.github/util/workflow-helper.js')({github, context});
 
@@ -216,6 +216,8 @@ jobs:
           distribution: 'adopt'
           cache: 'maven'
       - name: Build and analyze
+        env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
         run: mvn clean verify -Dsonar.pullrequest.key=${{ github.event.pull_request.number }} -Dsonar.pullrequest.branch=${{ github.event.pull_request.head.ref }} -Dsonar.pullrequest.base=${{ github.event.pull_request.base.ref }}
 
   integration-test:

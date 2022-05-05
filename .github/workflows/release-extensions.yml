@@ -39,7 +39,7 @@ jobs:
       - name: Release liquibase/${{ matrix.extension }} v${{ github.event.inputs.version }}
         uses: actions/github-script@v6
         with:
-          github-token: ${{ secrets.BOT_TOKEN }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             console.log("Sending liquibase-release event to liquibase/${{ matrix.extension }}");
 

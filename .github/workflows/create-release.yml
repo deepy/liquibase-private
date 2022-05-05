@@ -41,7 +41,7 @@ jobs:
           repository: liquibase/liquibase-pro
           ref: "${{ needs.setup.outputs.branch }}"
           path: download/repo/liquibase-pro
-          token: ${{ secrets.BOT_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
 
 
       - name: Download liquibase-artifacts
@@ -137,19 +137,19 @@ jobs:
           echo "$INSTALL4J_WINDOWS_KEY" | base64 -d > liquibase-dist/target/keys/datical_windows.pfx
 
           version="${{ needs.setup.outputs.version }}"
-          
+
           ##### Rebuild installers
           tarFile=$(pwd)/re-version/final/liquibase-$version.tar.gz
           scriptDir=$(pwd)/.github/util/
-          
+
           mkdir -p liquibase-dist/target/liquibase-$version
           (cd liquibase-dist/target/liquibase-$version && tar xfz $tarFile)
           (cd liquibase-dist && $scriptDir/package-install4j.sh $version)
           mv liquibase-dist/target/liquibase-*-installer-* re-version/final
-          
+
           ##Sign Files
           .github/util/sign-artifacts.sh re-version/final
-          
+
           (cd re-version/final && zip liquibase-additional-$version.zip *.asc *.md5 *.sha1)
           rm re-version/final/*.asc
           rm re-version/final/*.md5
