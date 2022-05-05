@@ -114,6 +114,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     env:
       OS_TYPE: ${{ matrix.os }}
+      GRADLE_ENTERPRISE_ACCESS_KEY: ${{ secrets.GRADLE_ENTERPRISE_ACCESS_KEY }}
     steps:
       - uses: actions/checkout@v3
         with:
@@ -174,6 +175,7 @@ jobs:
       - name: Build and analyze
         env:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
+            GRADLE_ENTERPRISE_ACCESS_KEY: ${{ secrets.GRADLE_ENTERPRISE_ACCESS_KEY }}
         run: mvn clean verify -Dsonar.pullrequest.key=${{ github.event.pull_request.number }} -Dsonar.pullrequest.branch=${{ github.event.pull_request.head.ref }} -Dsonar.pullrequest.base=${{ github.event.pull_request.base.ref }}
 
   integration-test:
@@ -194,6 +196,8 @@ jobs:
           - sqlite
     needs: build
     timeout-minutes: 30
+    env:
+        GRADLE_ENTERPRISE_ACCESS_KEY: ${{ secrets.GRADLE_ENTERPRISE_ACCESS_KEY }}
     steps:
       - uses: actions/checkout@v3
         with:
@@ -233,6 +237,8 @@ jobs:
     name: Package Artifacts
     runs-on: macos-latest
     needs: [ setup, build ]
+    env:
+        GRADLE_ENTERPRISE_ACCESS_KEY: ${{ secrets.GRADLE_ENTERPRISE_ACCESS_KEY }}
     steps:
       - uses: actions/checkout@v3
         with:
