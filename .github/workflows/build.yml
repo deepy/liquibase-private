@@ -27,13 +27,13 @@ jobs:
           echo "not building PRs with source branch github-action-*"
           exit 1
       - name: Emit failure code for unsafe fork PRs
-        if: github.event.pull_request && github.event.pull_request.head.repo.full_name != 'liquibase/liquibase' && github.event.label.name != 'SafeToBuild'
+        if: github.event.pull_request && github.event.pull_request.head.repo.full_name != 'deepy/liquibase-private' && github.event.label.name != 'SafeToBuild'
         run: |
           echo "PR from Fork is NOT safe to build"
           echo "A member of Liquibase team needs to apply label 'SafeToBuild'! "
           exit 1
       - name: Run needed builds
-        if: github.event.action == 'labeled' && github.event.pull_request.head.repo.full_name == 'liquibase/liquibase'
+        if: github.event.action == 'labeled' && github.event.pull_request.head.repo.full_name == 'deepy/liquibase-private'
         run: |
           echo "Don't run liquibase/liquibase builds on labels"
           exit 1
