@@ -293,9 +293,14 @@
                             <goal>addSources</goal>
                             <goal>addTestSources</goal>
                             <goal>compile</goal>
-                            <goal>compileTests</goal>
                             <goal>removeStubs</goal>
                             <goal>removeTestStubs</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>gmavenplus-compile-tests</id>
+                        <goals>
+                            <goal>compileTests</goal>
                         </goals>
                     </execution>
                 </executions>
@@ -457,6 +462,54 @@
                                     </ignoredFiles>
                                 </runtimeClassPath>
                             </normalization>
+                            <plugins>
+                                <plugin>
+                                    <groupId>org.codehaus.gmavenplus</groupId>
+                                    <artifactId>gmavenplus-plugin</artifactId>
+                                    <executions>
+                                        <execution>
+                                            <id>gmavenplus-compile-tests</id>
+                                            <inputs>
+                                                <fileSets>
+                                                    <fileSet>
+                                                        <name>testSources</name>
+                                                    </fileSet>
+                                                </fileSets>
+                                                <properties>
+                                                    <property><name>skipTests</name></property>
+                                                    <property><name>debug</name></property>
+                                                    <property><name>includeClasspath</name></property>
+                                                    <property><name>previewFeatures</name></property>
+                                                    <property><name>skipBytecodeCheck</name></property>
+                                                    <property><name>sourceEncoding</name></property>
+                                                    <property><name>targetBytecode</name></property>
+                                                    <property><name>tolerance</name></property>
+                                                    <property><name>invokeDynamic</name></property>
+                                                    <property><name>configScript</name></property>
+                                                    <property><name>parameters</name></property>
+                                                </properties>
+                                                <ignoredProperties>
+                                                    <ignore>parallelParsing</ignore>
+                                                    <ignore>warningLevel</ignore>
+                                                    <ignore>verbose</ignore>
+                                                    <ignore>mojoExecution</ignore>
+                                                    <ignore>project</ignore>
+                                                    <ignore>session</ignore>
+                                                    <ignore>pluginArtifacts</ignore>
+                                                </ignoredProperties>
+                                            </inputs>
+                                            <outputs>
+                                                <directories>
+                                                    <directory>
+                                                        <name>testOutputDirectory</name>
+                                                    </directory>
+                                                </directories>
+                                                <cacheableBecause>goal has well-defined output</cacheableBecause>
+                                            </outputs>
+                                        </execution>
+                                    </executions>
+                                </plugin>
+                            </plugins>
                         </gradleEnterprise>
                     </configuration>
                 </plugin>
