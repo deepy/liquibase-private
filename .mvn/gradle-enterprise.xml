@@ -11,7 +11,7 @@
         </capture>
     </buildScan>
     <buildCache>
-        <local><enabled>true</enabled></local>
+        <local><enabled>false</enabled></local>
         <remote>
             <enabled>true</enabled>
             <storeEnabled>#{isTrue(env['CI'])}</storeEnabled>
