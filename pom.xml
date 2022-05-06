@@ -296,6 +296,12 @@
                         </goals>
                     </execution>
                     <execution>
+                        <id>gmavenplus-compile</id>
+                        <goals>
+                            <goal>compile</goal>
+                        </goals>
+                    </execution>
+                    <execution>
                         <id>gmavenplus-compile-tests</id>
                         <goals>
                             <goal>compileTests</goal>
@@ -304,7 +310,6 @@
                     <execution>
                         <id>after</id>
                         <goals>
-                            <goal>compile</goal>
                             <goal>removeStubs</goal>
                             <goal>removeTestStubs</goal>
                         </goals>
@@ -473,6 +478,73 @@
                                     <groupId>org.codehaus.gmavenplus</groupId>
                                     <artifactId>gmavenplus-plugin</artifactId>
                                     <executions>
+                                        <execution>
+                                            <id>gmavenplus-compile</id>
+                                            <inputs>
+                                                <fileSets>
+                                                    <fileSet>
+                                                        <name>sources</name>
+                                                    </fileSet>
+                                                </fileSets>
+                                                <properties>
+                                                    <property><name>debug</name></property>
+                                                    <property><name>includeClasspath</name></property>
+                                                    <property><name>previewFeatures</name></property>
+                                                    <property><name>skipBytecodeCheck</name></property>
+                                                    <property><name>sourceEncoding</name></property>
+                                                    <property><name>targetBytecode</name></property>
+                                                    <property><name>tolerance</name></property>
+                                                    <property><name>invokeDynamic</name></property>
+                                                    <property><name>configScript</name></property>
+                                                    <property><name>parameters</name></property>
+                                                </properties>
+                                                <ignoredProperties>
+                                                    <ignore>parallelParsing</ignore>
+                                                    <ignore>warningLevel</ignore>
+                                                    <ignore>verbose</ignore>
+                                                    <ignore>mojoExecution</ignore>
+                                                    <ignore>session</ignore>
+                                                    <ignore>pluginArtifacts</ignore>
+                                                </ignoredProperties>
+                                            </inputs>
+                                            <nestedProperties>
+                                                <property>
+                                                    <name>project</name>
+                                                    <iteratedProperties>
+                                                        <property>
+                                                            <name>dependencies</name>
+                                                            <inputs>
+                                                                <properties>
+                                                                    <property>
+                                                                        <name>groupId</name>
+                                                                    </property>
+                                                                    <property>
+                                                                        <name>artifactId</name>
+                                                                    </property>
+                                                                    <property>
+                                                                        <name>version</name>
+                                                                    </property>
+                                                                    <property>
+                                                                        <name>type</name>
+                                                                    </property>
+                                                                    <property>
+                                                                        <name>scope</name>
+                                                                    </property>
+                                                                </properties>
+                                                            </inputs>
+                                                        </property>
+                                                    </iteratedProperties>
+                                                </property>
+                                            </nestedProperties>
+                                            <outputs>
+                                                <directories>
+                                                    <directory>
+                                                        <name>outputDirectory</name>
+                                                    </directory>
+                                                </directories>
+                                                <cacheableBecause>goal has well-defined output</cacheableBecause>
+                                            </outputs>
+                                        </execution>
                                         <execution>
                                             <id>gmavenplus-compile-tests</id>
                                             <inputs>
