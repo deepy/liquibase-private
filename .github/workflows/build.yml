@@ -124,7 +124,7 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha || github.event.after}}
       - name: Built Code Cache
         if: ${{ matrix.java == 8}}
-        uses: actions/cache@v3.0.1
+        uses: actions/cache@v3.0.4
         with:
           key: built-code-${{ github.run_number }}-${{ github.run_attempt }}
           path: ./**/target
@@ -224,7 +224,7 @@ jobs:
           distribution: 'temurin'
           cache: 'maven'
       - name: Restore Built Code Cache
-        uses: actions/cache@v3.0.1
+        uses: actions/cache@v3.0.4
         with:
           key: built-code-${{ github.run_number }}-${{ github.run_attempt }}
           path: ./**/target
